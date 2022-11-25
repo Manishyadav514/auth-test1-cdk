@@ -1,9 +1,7 @@
 {
   "app": "npx ts-node --prefer-ts-exts bin/auth-test1-cdk.ts",
   "watch": {
-    "include": [
-      "**"
-    ],
+    "include": ["**"],
     "exclude": [
       "README.md",
       "cdk*.json",
@@ -19,9 +17,31 @@
   "context": {
     "@aws-cdk/aws-lambda:recognizeLayerVersion": true,
     "@aws-cdk/core:checkSecretUsage": true,
-    "@aws-cdk/core:target-partitions": [
-      "aws",
-      "aws-cn"
+    "@aws-cdk/core:target-partitions": ["aws", "aws-cn"],
+    "globals": {
+      "appName": "authTestCDK",
+      "region": "ap-south-1"
+    },
+    "environments": [
+      {
+        "environment": "development",
+        "branchName": "preprod",
+        "accountNumber": "217129141064",
+        "s3Encrypt": false,
+        "ddbPITrecovery": false,
+        "baseDomain": "mydomain-dev.com",
+        "apiDomain": "api.mydomain-dev.com"
+        
+      },
+      {
+        "environment": "production",
+        "branchName": "master",
+        "accountNumber": "217129141064",
+        "s3Encrypt": true,
+        "ddbPITrecovery": true,
+        "baseDomain": "mydomain-prod.com",
+        "apiDomain": "api.mydomain-prod.com"
+      }
     ],
     "@aws-cdk-containers/ecs-service-extensions:enableDefaultLogDriver": true,
     "@aws-cdk/aws-ec2:uniqueImdsv2TemplateName": true,

@@ -21,7 +21,12 @@
     "strictPropertyInitialization": false,
     "typeRoots": [
       "./node_modules/@types"
-    ]
+    ],
+    "esModuleInterop": true,
+    "baseUrl": ".",
+    "paths": {
+      "/layer/*": ["lambda-layer/*"]
+    }
   },
   "exclude": [
     "node_modules",

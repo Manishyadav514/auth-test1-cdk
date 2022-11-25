@@ -1,21 +1,47 @@
 #!/usr/bin/env node
-import 'source-map-support/register';
-import * as cdk from 'aws-cdk-lib';
-import { AuthTest1CdkStack } from '../lib/auth-test1-cdk-stack';
+import "source-map-support/register";
+import * as cdk from "aws-cdk-lib";
+import { AuthTestCdkStack } from "../lib/auth-test1-cdk-stack";
+import gitBranch from "git-branch";
+import { CDKContext } from "../schema-type/types";
 
 const app = new cdk.App();
-new AuthTest1CdkStack(app, 'AuthTest1CdkStack', {
-  /* If you don't specify 'env', this stack will be environment-agnostic.
-   * Account/Region-dependent features and context lookups will not work,
-   * but a single synthesized template can be deployed anywhere. */
 
-  /* Uncomment the next line to specialize this stack for the AWS Account
-   * and Region that are implied by the current CLI configuration. */
-  // env: { account: process.env.CDK_DEFAULT_ACCOUNT, region: process.env.CDK_DEFAULT_REGION },
+const createAuthTestStack = async () => {
+  try {
+    const app = new cdk.App();
+    const context = await getContext(app);
+    const tags: any = {
+      Environment: context.environment,
+    };
+    const stackName = `${context.appName}Stack-${context.environment}`;
+    const stackProps: cdk.StackProps = {
+      env: { region: context.region, account: context.accountNumber },
+      stackName: stackName,
+      description: "Stack deployment",
+      tags,
+    };
+    new AuthTestCdkStack(app, stackName, context, stackProps);
+  } catch (error) {
+    console.log(error);
+  }
+};
 
-  /* Uncomment the next line if you know exactly what Account and Region you
-   * want to deploy the stack to. */
-  // env: { account: '123456789012', region: 'us-east-1' },
+// get content based on git branch and call create stack fucntion
+export const getContext = async (app: cdk.App): Promise<CDKContext> => {
+  return new Promise(async (resolve, reject) => {
+    try {
+      const currentBranch = await gitBranch();
+      const environment = app.node
+        .tryGetContext("environments")
+        .find((e: any) => e.branchName === currentBranch);
+      const globals = app.node.tryGetContext("globals");
+      return resolve({ ...globals, ...environment });
+    } catch (error) {
+      console.log(error);
+      return reject();
+    }
+  });
+};
 
-  /* For more information, see https://docs.aws.amazon.com/cdk/latest/guide/environments.html */
-});
+createAuthTestStack();
