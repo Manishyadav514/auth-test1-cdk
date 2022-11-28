@@ -1,10 +1,12 @@
-import { CDKContext } from "../schema-type/types";
+import { CDKContext } from "../layer/types";
 import * as cdk from "aws-cdk-lib";
 import { Construct } from "constructs";
 import * as s3 from "aws-cdk-lib/aws-s3";
 import * as dynamoDB from "aws-cdk-lib/aws-dynamodb";
-
+import * as lambda from "aws-cdk-lib/aws-lambda";
+import * as apigw from "aws-cdk-lib/aws-apigateway";
 export class AuthTestCdkStack extends cdk.Stack {
+  public readonly ddbTableProperty: dynamoDB.Table;
   constructor(
     scope: Construct,
     id: string,
@@ -12,6 +14,31 @@ export class AuthTestCdkStack extends cdk.Stack {
     props?: cdk.StackProps
   ) {
     super(scope, id, props);
+
+    // lambda function construct
+    const authTestFunction = new lambda.Function(this, "authHandler", {
+      runtime: lambda.Runtime.NODEJS_14_X, // execution environment (Node Version)
+      code: lambda.Code.fromAsset("lambda-function"), // code loaded from "lambda-function" directory
+      handler: "test.handler", // file is "test", function is "handler"
+      functionName: "authtestfunction",
+    });
+
+    // API construct
+    const authTestApi = new apigw.LambdaRestApi(this, "authTestAPI", {
+      handler: authTestFunction,
+      proxy: false,
+      restApiName: "authtestapi",
+      deployOptions: {
+        stageName: context.apiStage,
+      },
+    });
+
+    // lambda-function (authTestFunction) and api (authTestApi) integration
+    const authApiIntegration = new apigw.LambdaIntegration(authTestFunction);
+
+    // defining resources and methods in apigateway
+    const items = authTestApi.root.addResource("test");
+    items.addMethod("GET");
 
     // s3 bucket construct
     const authTestCdkBucket = new s3.Bucket(this, "authBucket", {
@@ -31,13 +58,27 @@ export class AuthTestCdkStack extends cdk.Stack {
       removalPolicy: cdk.RemovalPolicy.DESTROY,
       pointInTimeRecovery: context.ddbPITrecovery,
     });
+    this.ddbTableProperty = authTestCdkTable; // allowing property
+
+    // don't know what this is
+    authTestCdkTable.addGlobalSecondaryIndex({
+      indexName: `itemType-index`,
+      partitionKey: { name: "itemType", type: dynamoDB.AttributeType.STRING },
+      projectionType: dynamoDB.ProjectionType.ALL,
+    });
 
     // StackOutput
+    // 1. apigateway output
+    new cdk.CfnOutput(this, "GatewayUrl", {
+      value: authTestApi.url,
+      exportName: "authtestapi",
+    });
+    // 2. bucket output
     new cdk.CfnOutput(this, "authTestCdkBucket", {
       value: authTestCdkBucket.bucketArn,
       exportName: `${context.appName}BucketArn-${context.environment}`,
     });
-
+    // 3. table output
     new cdk.CfnOutput(this, "authTestCdkTable", {
       value: authTestCdkTable.tableArn,
       exportName: `${context.appName}TableArn-${context.environment}`,

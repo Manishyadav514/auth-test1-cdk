@@ -3,7 +3,7 @@ import "source-map-support/register";
 import * as cdk from "aws-cdk-lib";
 import { AuthTestCdkStack } from "../lib/auth-test1-cdk-stack";
 import gitBranch from "git-branch";
-import { CDKContext } from "../schema-type/types";
+import { CDKContext } from "../layer/types";
 
 const app = new cdk.App();
 

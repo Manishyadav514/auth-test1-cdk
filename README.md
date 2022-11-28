@@ -12,5 +12,7 @@ This repo consists code for AWS CDK project. It creates two different cloudforma
 ## NPM Install
 1. git-branch
 To get the diffrenet branch we are in and based on the branch we can import different stack.
+2. ajv json validator
+to validate the json payload passed in request.
 
 

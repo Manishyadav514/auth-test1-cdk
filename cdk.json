@@ -26,6 +26,7 @@
       {
         "environment": "development",
         "branchName": "preprod",
+        "apiStage": "dev",
         "accountNumber": "217129141064",
         "s3Encrypt": false,
         "ddbPITrecovery": false,
@@ -36,6 +37,7 @@
       {
         "environment": "production",
         "branchName": "master",
+        "apiStage": "prod",
         "accountNumber": "217129141064",
         "s3Encrypt": true,
         "ddbPITrecovery": true,
