@@ -18,7 +18,7 @@ export class AuthTestCdkStack extends cdk.Stack {
     // lambda function construct
     const authTestFunction = new lambda.Function(this, "authHandler", {
       runtime: lambda.Runtime.NODEJS_14_X, // execution environment (Node Version)
-      code: lambda.Code.fromAsset("lambda-function"), // code loaded from "lambda-function" directory
+      code: lambda.Code.fromAsset("src/lambda"), // code loaded from "lambda-function" directory
       handler: "test.handler", // file is "test", function is "handler"
       functionName: "authtestfunction",
     });
