@@ -23,6 +23,13 @@ export class AuthTestCdkStack extends cdk.Stack {
       functionName: "authtestfunction",
     });
 
+    const authLoginFunction = new lambda.Function(this, "authlogin", {
+      runtime: lambda.Runtime.NODEJS_14_X, // execution environment (Node Version)
+      code: lambda.Code.fromAsset("src/lambda"), // code loaded from "lambda-function" directory
+      handler: "login.handler", // file is "test", function is "handler"
+      functionName: "authloginfunction",
+    });
+
     // API construct
     const authTestApi = new apigw.LambdaRestApi(this, "authTestAPI", {
       handler: authTestFunction,
@@ -34,11 +41,15 @@ export class AuthTestCdkStack extends cdk.Stack {
     });
 
     // lambda-function (authTestFunction) and api (authTestApi) integration
-    const authApiIntegration = new apigw.LambdaIntegration(authTestFunction);
+    const authTestIntegration = new apigw.LambdaIntegration(authTestFunction);
+    const authLoginIntegration = new apigw.LambdaIntegration(authLoginFunction);
 
     // defining resources and methods in apigateway
     const items = authTestApi.root.addResource("test");
-    items.addMethod("GET");
+    items.addMethod("GET", authTestIntegration);
+
+    const login = authTestApi.root.addResource("login");
+    login.addMethod("POST", authLoginIntegration);
 
     // s3 bucket construct
     const authTestCdkBucket = new s3.Bucket(this, "authBucket", {
